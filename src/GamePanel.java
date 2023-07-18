@@ -13,8 +13,8 @@ public class GamePanel extends JPanel implements ActionListener {
     static final int UNIT_SIZE = 25;  //the size of the object
     static final int GAME_UNIT = (SCREEN_WIDTH * SCREEN_HEIGHT) / UNIT_SIZE;  //how many object we can fit on the screen
     static final int DELAY = 75; //higher number of delay, slower the game will be
-    final int x[] = new int[GAME_UNIT];
-    final int y[] = new int[GAME_UNIT];
+    final int x[] = new int[GAME_UNIT];  //x coordinate for the snake, x[0] is the x coordinate for the head
+    final int y[] = new int[GAME_UNIT]; //y coordinate for the snake, x[0] is the y coordinate for the head
     int bodyParts = 6;
     int appleEaten;
     int appleX;
@@ -32,7 +32,7 @@ public class GamePanel extends JPanel implements ActionListener {
         startGame();
     }
 
-    public void startGame(){
+    private void startGame(){
         newApple();
         running = true;
         timer = new Timer(DELAY, this);
@@ -45,34 +45,55 @@ public class GamePanel extends JPanel implements ActionListener {
         draw(graphics);
 
     }
-    public void draw(Graphics graphics){
-        for (int i = 0 ; i < SCREEN_HEIGHT/UNIT_SIZE ; i++){
-            graphics.drawLine(i*UNIT_SIZE, 0,  i*UNIT_SIZE, SCREEN_HEIGHT);
-            graphics.drawLine(0, i*UNIT_SIZE,  SCREEN_WIDTH, i*UNIT_SIZE);
-        }
-
-        graphics.setColor(Color.RED);
-        graphics.fillOval(appleX,appleY,UNIT_SIZE,UNIT_SIZE);
-
-        for (int i = 0 ; i < bodyParts ; i++) {
-            if (i == 0 ){
-                graphics.setColor(Color.green);
-                graphics.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
-            } else {
-                graphics.setColor(new Color(45, 150,0));
-                graphics.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
+    private void draw(Graphics graphics){
+        if (running) {
+            // draw the grid
+            for (int i = 0 ; i < SCREEN_HEIGHT/UNIT_SIZE ; i++){
+                graphics.drawLine(i*UNIT_SIZE, 0,  i*UNIT_SIZE, SCREEN_HEIGHT);
+                graphics.drawLine(0, i*UNIT_SIZE,  SCREEN_WIDTH, i*UNIT_SIZE);
             }
+
+            // draw the apple
+            graphics.setColor(Color.RED);
+            graphics.fillOval(appleX,appleY,UNIT_SIZE,UNIT_SIZE);
+
+            //draw the snake
+            for (int i = 0 ; i < bodyParts ; i++) {
+                if (i == 0 ){
+                    graphics.setColor(Color.green);
+                    graphics.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
+                } else {
+                    graphics.setColor(randomColorCode());
+                    graphics.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
+                }
+            }
+
+            //draw score
+            graphics.setColor(Color.orange);
+            graphics.setFont(new Font("SansSerif", Font.BOLD, 20));
+            FontMetrics fontMetrics = getFontMetrics(graphics.getFont());
+            graphics.drawString("Score: " + appleEaten,
+                    (SCREEN_WIDTH - fontMetrics.stringWidth("Score: " + appleEaten))/2, graphics.getFont().getSize()+2);
+        } else {
+            gameOver(graphics);
         }
-
-
     }
-    public void newApple(){
+
+    private Color randomColorCode(){
+        Color randomColor = new Color((ThreadLocalRandom.current().nextInt(1, 256)),
+            (ThreadLocalRandom.current().nextInt(1,
+                    256)),
+            (ThreadLocalRandom.current().nextInt(1, 256)));
+        return randomColor;
+    }
+
+    private void newApple(){
         appleX = ThreadLocalRandom.current().nextInt(1, (int)(SCREEN_WIDTH / UNIT_SIZE + 1))*UNIT_SIZE;
         appleY = ThreadLocalRandom.current().nextInt(1, (int)(SCREEN_WIDTH / UNIT_SIZE + 1))* UNIT_SIZE;
 
 
     }
-    public void move(){
+    private void move(){
         for (int i = bodyParts; i > 0; i--){
             x[i] = x[i-1];
             y[i] = y[i-1];
@@ -86,9 +107,16 @@ public class GamePanel extends JPanel implements ActionListener {
         }
 
     }
-    public void checkApple(){}
-    public void checkCollisions(){
-        //check if the snake head has the same cooridnation with body, i.e. if head collise with body
+    private void checkApple(){
+        if ((x[0] == appleX) && (y[0] == appleY)){
+            bodyParts++;
+            appleEaten++;
+            newApple();
+        }
+
+    }
+    private void checkCollisions(){
+        //check if the snake head has the same coordinates with body, i.e. if head collides with body
         for(int i = bodyParts ; i > 0 ; i--){
             if ((x[0] == x[i]) && (y[0] == y[i])){
                 running = false;
@@ -103,12 +131,20 @@ public class GamePanel extends JPanel implements ActionListener {
             running = false;
         }
 
-
         if (!running){
             timer.stop();
         }
     }
-    public void gameOver(Graphics graphics){}
+    private void gameOver(Graphics graphics){
+        //gameover text
+        graphics.setColor(Color.orange);
+        graphics.setFont(new Font("SansSerif", Font.BOLD, 50));
+        FontMetrics fontMetrics = getFontMetrics(graphics.getFont());
+        graphics.drawString("Game Over!", (SCREEN_WIDTH - fontMetrics.stringWidth("Game Over!"))/2, SCREEN_HEIGHT/2 );
+        graphics.drawString("Score: " + appleEaten, (SCREEN_WIDTH - fontMetrics.stringWidth("Score: " + appleEaten))/2,
+                SCREEN_HEIGHT/2 + graphics.getFont().getSize());
+
+    }
     @Override
     public void actionPerformed(ActionEvent e) {
         if (running){
@@ -120,7 +156,7 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     //an inner class
-    public class MyKeyAdapter extends KeyAdapter{
+    private class MyKeyAdapter extends KeyAdapter{
         @Override
         public void keyPressed(KeyEvent event) {
             switch (event.getKeyCode()) {

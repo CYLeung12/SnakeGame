@@ -64,6 +64,7 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         }
 
+
     }
     public void newApple(){
         appleX = ThreadLocalRandom.current().nextInt(1, (int)(SCREEN_WIDTH / UNIT_SIZE + 1))*UNIT_SIZE;
@@ -86,10 +87,36 @@ public class GamePanel extends JPanel implements ActionListener {
 
     }
     public void checkApple(){}
-    public void checkCollisions(){}
+    public void checkCollisions(){
+        //check if the snake head has the same cooridnation with body, i.e. if head collise with body
+        for(int i = bodyParts ; i > 0 ; i--){
+            if ((x[0] == x[i]) && (y[0] == y[i])){
+                running = false;
+            }
+        }
+
+        //check if head touch left, right, top, bottom border
+        if (x[0] < 0 ||
+            x[0] > SCREEN_WIDTH ||
+            y[0] < 0 ||
+            y[0] > SCREEN_HEIGHT){
+            running = false;
+        }
+
+
+        if (!running){
+            timer.stop();
+        }
+    }
     public void gameOver(Graphics graphics){}
     @Override
     public void actionPerformed(ActionEvent e) {
+        if (running){
+            move();
+            checkApple();
+            checkCollisions();
+        }
+        repaint();
     }
 
     //an inner class

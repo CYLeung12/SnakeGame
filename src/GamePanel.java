@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class GamePanel extends JPanel implements ActionListener {
